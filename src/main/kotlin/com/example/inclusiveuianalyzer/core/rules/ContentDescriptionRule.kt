@@ -15,19 +15,36 @@ class ContentDescriptionRule : Rule {
     private val logger = Logger.getInstance(ContentDescriptionRule::class.java)
 
     override val profile = Profile.VISION
+    override val target = AnalysisTarget.ANDROID_LAYOUT_XML
 
     override fun check(context: AnalysisContext): List<Issue> {
         val issues = mutableListOf<Issue>()
+        val fileName = context.file.name
+
         context.file.accept(object : PsiRecursiveElementVisitor() {
             override fun visitElement(element: PsiElement) {
                 super.visitElement(element)
+
                 if (element is XmlTag) {
                     if (!XmlAttributeUtils.isAttributeNonEmpty(element, "android:contentDescription")) {
-                        println("Found missing contentDescription in ${element.name}")
-                        logger.info("Found missing contentDescription in ${element.name}")
+
+                        val tagName = element.name
+                        val id = element.getAttributeValue("android:id")
+                        val tagDescription = buildString {
+                            append(tagName)
+                            id?.let { append("#$it") }
+                        }
+
+                        val message = buildString {
+                            append("Missing contentDescription\n")
+                            append("File: $fileName\n")
+                            append("Element: $tagDescription\n")
+                        }
+                        logger.warn(message)
+
                         issues.add(
                             Issue(
-                                "Missing contentDescription",
+                                message,
                                 element,
                                 Severity.WARNING,
                                 profile
@@ -37,6 +54,7 @@ class ContentDescriptionRule : Rule {
                 }
             }
         })
+
         return issues
     }
 }

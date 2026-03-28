@@ -1,16 +1,16 @@
 package com.example.inclusiveuianalyzer.inspection
 
 import com.example.inclusiveuianalyzer.core.engine.AnalyzerEngine
+import com.example.inclusiveuianalyzer.core.engine.AnalyzerEngineHolder
 import com.intellij.codeInspection.*
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiFile
 import com.example.inclusiveuianalyzer.core.model.Profile
 import com.intellij.psi.PsiElementVisitor
 
-// В InclusiveAccessibilityInspection
 class InclusiveAccessibilityInspection : LocalInspectionTool() {
     private val logger = Logger.getInstance(InclusiveAccessibilityInspection::class.java)
-    private val engine = AnalyzerEngine()
+    private val engine = AnalyzerEngineHolder.instance
 
     init {
         logger.info(">>> TestInspection ИНИЦИАЛИЗИРОВАН <<<")
@@ -21,26 +21,12 @@ class InclusiveAccessibilityInspection : LocalInspectionTool() {
         holder: ProblemsHolder,
         isOnTheFly: Boolean
     ): PsiElementVisitor {
-
-        val file = holder.file
-        logger.warn("VISITOR STARTED for ${file.name}")
-
-        val issues = engine.analyze(file, Profile.VISION)
-
-        issues.forEach {
-            holder.registerProblem(
-                it.element,
-                it.message,
-                ProblemHighlightType.WARNING
-            )
-        }
-
         return PsiElementVisitor.EMPTY_VISITOR
     }
 
     override fun checkFile(file: PsiFile, manager: InspectionManager, isOnTheFly: Boolean): Array<ProblemDescriptor>? {
         logger.info("Starting inspection for file: ${file.name}")
-        println("DEBUG: Starting inspection for file: ${file.name}") // для отладки в консоли
+        println("DEBUG: Starting inspection for file: ${file.name}")
 
         try {
             val issues = engine.analyze(file, Profile.VISION)

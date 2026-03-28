@@ -1,6 +1,7 @@
 package com.example.inclusiveuianalyzer.inspection
 
 import com.example.inclusiveuianalyzer.core.engine.AnalyzerEngine
+import com.example.inclusiveuianalyzer.core.engine.AnalyzerEngineHolder
 import com.example.inclusiveuianalyzer.core.model.Profile
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
@@ -16,12 +17,11 @@ import com.intellij.psi.xml.XmlFile
 class ProjectAnalyzerStartupActivity : StartupActivity.DumbAware {
 
     private val logger = Logger.getInstance(ProjectAnalyzerStartupActivity::class.java)
-    private val engine = AnalyzerEngine()
+    private val engine = AnalyzerEngineHolder.instance
 
     override fun runActivity(project: Project) {
         logger.info(">>> Project-wide analysis STARTED <<<")
 
-        // Выполняем в отдельном потоке, чтобы не блокировать UI
         ApplicationManager.getApplication().executeOnPooledThread {
             analyzeAllXmlFiles(project)
         }
@@ -31,7 +31,6 @@ class ProjectAnalyzerStartupActivity : StartupActivity.DumbAware {
         val psiManager = PsiManager.getInstance(project)
         val scope = GlobalSearchScope.projectScope(project)
 
-        // Ищем все XML файлы проекта
         val xmlFiles: Collection<VirtualFile> = FileTypeIndex.getFiles(XmlFileType.INSTANCE, scope)
 
         xmlFiles.forEach { virtualFile ->
@@ -39,7 +38,6 @@ class ProjectAnalyzerStartupActivity : StartupActivity.DumbAware {
             val issues = engine.analyze(psiFile, Profile.VISION)
 
             issues.forEach { issue ->
-                // Логируем в idea.log
                 logger.warn("File: ${psiFile.name}, Element: ${issue.element}, Issue: ${issue.message}")
             }
         }

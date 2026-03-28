@@ -12,7 +12,7 @@ enum class Profile {
 
 data class Issue(
     val message: String,
-    val element: PsiElement,  // Указывает на объект PSI (элемент кода/XML)
+    val element: PsiElement,
     val severity: Severity,
     val profile: Profile
 )

@@ -14,15 +14,10 @@ repositories {
     }
 }
 
-// Read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
 dependencies {
     intellijPlatform {
-//        local("/Applications/Android Studio.app")
         intellijIdeaUltimate("2024.2.4")
         testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
-
-        // Add plugin dependencies for compilation here:
-
 
         bundledPlugin("com.intellij.java")
         bundledPlugin("org.jetbrains.kotlin")
@@ -51,13 +46,7 @@ tasks {
         targetCompatibility = "21"
     }
 
-//    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-//        kotlinOptions.jvmTarget = "21"
-//    }
-
     runIde {
-
-        // Для отладки
         systemProperty("idea.log.debug.categories", "#com.example.inclusiveuianalyzer")
     }
 }

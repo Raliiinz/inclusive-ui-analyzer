@@ -6,5 +6,7 @@ import com.example.inclusiveuianalyzer.core.model.Profile
 
 interface Rule {
     val profile: Profile
+    val target: AnalysisTarget
+
     fun check(context: AnalysisContext): List<Issue>
 }
