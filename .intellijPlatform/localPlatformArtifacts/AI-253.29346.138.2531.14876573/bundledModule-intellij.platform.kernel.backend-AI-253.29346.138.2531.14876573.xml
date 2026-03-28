@@ -1,0 +1,13 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.platform.kernel.backend" revision="AI-253.29346.138.2531.14876573"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.platform.kernel.backend" ext="jar" conf="default" url="lib/modules"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.platform.kernel.impl" rev="AI-253.29346.138.2531.14876573"/>
+    <dependency org="bundledModule" name="intellij.platform.rpc.backend" rev="AI-253.29346.138.2531.14876573"/>
+  </dependencies>
+</ivy-module>

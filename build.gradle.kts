@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "2.1.20"
+    id("org.jetbrains.kotlin.jvm") version "2.3.0"
     id("org.jetbrains.intellij.platform") version "2.10.2"
 }
 
@@ -14,38 +14,40 @@ repositories {
     }
 }
 
-// Read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
 dependencies {
     intellijPlatform {
-        intellijIdea("2025.2.4")
+        intellijIdeaUltimate("2024.2.4")
         testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
-
-        // Add plugin dependencies for compilation here:
-
 
         bundledPlugin("com.intellij.java")
         bundledPlugin("org.jetbrains.kotlin")
         bundledPlugin("com.intellij.modules.json")
+        bundledPlugin("com.intellij.modules.xml")
+
     }
 }
 
 intellijPlatform {
     pluginConfiguration {
+        name = "Inclusive UI Analyzer"
+        version = "1.0.0"
         ideaVersion {
-            sinceBuild = "252.25557"
+            sinceBuild = "242"
+            untilBuild = "253.*"
         }
-
-        changeNotes = """
-            Initial version
-        """.trimIndent()
+        description = "Accessibility analyzer for Android UI"
     }
+    buildSearchableOptions = false
 }
 
 tasks {
-    // Set the JVM compatibility versions
     withType<JavaCompile> {
         sourceCompatibility = "21"
         targetCompatibility = "21"
+    }
+
+    runIde {
+        systemProperty("idea.log.debug.categories", "#com.example.inclusiveuianalyzer")
     }
 }
 
