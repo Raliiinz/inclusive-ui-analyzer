@@ -6,4 +6,5 @@ enum class AnalysisTarget {
     KOTLIN_CLASS,
     JAVA_CLASS,
     ALL_XML,
+    JETPACK_COMPOSE,
 }
