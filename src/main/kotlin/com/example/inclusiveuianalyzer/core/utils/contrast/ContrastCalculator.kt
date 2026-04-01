@@ -1,4 +1,4 @@
-package com.example.inclusiveuianalyzer.analyzers.xml
+package com.example.inclusiveuianalyzer.core.utils.contrast
 
 import java.awt.Color
 
