@@ -2,6 +2,9 @@ package com.example.inclusiveuianalyzer.core.rules
 
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
 import com.example.inclusiveuianalyzer.core.model.Issue
+import com.example.inclusiveuianalyzer.core.rules.compose.ClearAndSetSemanticsRule
+import com.example.inclusiveuianalyzer.core.rules.compose.SemanticsRule
+import com.example.inclusiveuianalyzer.core.rules.compose.TextAlternativeRule
 import com.example.inclusiveuianalyzer.core.rules.xml.ContentDescriptionRule
 import com.example.inclusiveuianalyzer.core.rules.xml.ContrastRule
 import com.example.inclusiveuianalyzer.core.rules.xml.ImportantForAccessibilityRule
@@ -14,13 +17,16 @@ class RuleEngine {
     private val rules = mutableListOf<Rule>()
 
     init {
-        // Добавляем правила
+        // XML
         rules.add(ContentDescriptionRule())
         rules.add(ImportantForAccessibilityRule())
         rules.add(TouchTargetSizeRule())
         rules.add(ContrastRule())
-//        rules.add(ContrastRule())
-//        rules.add(SizeRule())
+
+        // Compose
+        rules.add(SemanticsRule())
+        rules.add(ClearAndSetSemanticsRule())
+        rules.add(TextAlternativeRule())
     }
 
     fun runRules(context: AnalysisContext): List<Issue> {
@@ -39,7 +45,7 @@ class RuleEngine {
             AnalysisTarget.JAVA_CLASS -> FileTypeUtils.isJava(file)
             AnalysisTarget.ALL_XML -> FileTypeUtils.isXml(file)
             AnalysisTarget.ANDROID_MANIFEST -> file.name == "AndroidManifest.xml"
-
+            AnalysisTarget.JETPACK_COMPOSE -> isComposeFile(file)
         }
     }
 
@@ -52,5 +58,11 @@ class RuleEngine {
             current = current.parent
         }
         return false
+    }
+
+    private fun isComposeFile(file: PsiFile): Boolean {
+        if (!FileTypeUtils.isKotlin(file)) return false
+        val text = file.text ?: return false
+        return text.contains("@Composable")
     }
 }
