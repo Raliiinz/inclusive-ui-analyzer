@@ -1,29 +1,38 @@
-<!-- Plugin Configuration File: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <!-- Unique identifier of the plugin. It should be FQN, cannot be changed between the plugin versions. -->
     <id>com.example.inclusive-ui-analyzer</id>
+    <name>Inclusive UI Analyzer</name>
+    <version>1.0.0</version>
+    <vendor email="support@yourcompany.com" url="https://www.yourcompany.com">YourCompany</vendor>
 
-    <!-- Public plugin name should be written in Title Case.
-         Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-name -->
-    <name>Inclusive-ui-analyzer</name>
-
-    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor url="https://www.yourcompany.com">YourCompany</vendor>
-
-    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
-         Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
     <description><![CDATA[
-        Enter short description for your plugin here.<br>
-        <em>most HTML tags may be used</em>
+      Analyzes Android UI for accessibility issues
     ]]></description>
 
-    <!-- Product and plugin compatibility requirements.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <change-notes><![CDATA[
+      Initial release
+    ]]></change-notes>
 
+    <idea-version since-build="242" until-build="253.*"/>
+
+    <!-- Зависимости -->
+    <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.java</depends>
     <depends>org.jetbrains.kotlin</depends>
-    <depends>com.intellij.modules.json</depends>
     <depends>com.intellij.modules.xml</depends>
-    <!-- Extensions defined by the plugin.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+
+    <!-- Расширения -->
+    <extensions defaultExtensionNs="com.intellij">
+
+        <postStartupActivity implementation="com.example.inclusiveuianalyzer.inspection.ProjectAnalyzerStartupActivity"/>
+        <localInspection
+                language=""
+                groupPath="Android"
+                groupName="Accessibility"
+                displayName="Inclusive UI Analysis"
+                shortName="InclusiveUI"
+                implementationClass="com.example.inclusiveuianalyzer.inspection.InclusiveAccessibilityInspection"
+                level="WARNING"
+                enabledByDefault="true"
+                runForWholeFile="true"/>
+    </extensions>
 </idea-plugin>
