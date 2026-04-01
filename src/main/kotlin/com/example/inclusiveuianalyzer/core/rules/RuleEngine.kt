@@ -2,6 +2,10 @@ package com.example.inclusiveuianalyzer.core.rules
 
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
 import com.example.inclusiveuianalyzer.core.model.Issue
+import com.example.inclusiveuianalyzer.core.rules.xml.ContentDescriptionRule
+import com.example.inclusiveuianalyzer.core.rules.xml.ContrastRule
+import com.example.inclusiveuianalyzer.core.rules.xml.ImportantForAccessibilityRule
+import com.example.inclusiveuianalyzer.core.rules.xml.TouchTargetSizeRule
 import com.example.inclusiveuianalyzer.core.utils.FileTypeUtils
 import com.intellij.psi.PsiFile
 
@@ -12,6 +16,9 @@ class RuleEngine {
     init {
         // Добавляем правила
         rules.add(ContentDescriptionRule())
+        rules.add(ImportantForAccessibilityRule())
+        rules.add(TouchTargetSizeRule())
+        rules.add(ContrastRule())
 //        rules.add(ContrastRule())
 //        rules.add(SizeRule())
     }
@@ -32,6 +39,7 @@ class RuleEngine {
             AnalysisTarget.JAVA_CLASS -> FileTypeUtils.isJava(file)
             AnalysisTarget.ALL_XML -> FileTypeUtils.isXml(file)
             AnalysisTarget.ANDROID_MANIFEST -> file.name == "AndroidManifest.xml"
+
         }
     }
 

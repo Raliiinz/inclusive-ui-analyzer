@@ -5,5 +5,5 @@ enum class AnalysisTarget {
     ANDROID_MANIFEST,
     KOTLIN_CLASS,
     JAVA_CLASS,
-    ALL_XML
+    ALL_XML,
 }
