@@ -2,6 +2,7 @@ package com.example.inclusiveuianalyzer.core.rules
 
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
 import com.example.inclusiveuianalyzer.core.model.Issue
+import com.example.inclusiveuianalyzer.core.rules.audio.AudioUsageRule
 import com.example.inclusiveuianalyzer.core.rules.compose.ClearAndSetSemanticsRule
 import com.example.inclusiveuianalyzer.core.rules.compose.SemanticsRule
 import com.example.inclusiveuianalyzer.core.rules.compose.TextAlternativeRule
@@ -27,6 +28,9 @@ class RuleEngine {
         rules.add(SemanticsRule())
         rules.add(ClearAndSetSemanticsRule())
         rules.add(TextAlternativeRule())
+
+        // Audio
+        rules.add(AudioUsageRule())
     }
 
     fun runRules(context: AnalysisContext): List<Issue> {

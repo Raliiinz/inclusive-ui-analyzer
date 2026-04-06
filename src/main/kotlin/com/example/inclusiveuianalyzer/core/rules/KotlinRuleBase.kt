@@ -1,13 +1,12 @@
-package com.example.inclusiveuianalyzer.core.rules.compose
+package com.example.inclusiveuianalyzer.core.rules
 
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
-import com.example.inclusiveuianalyzer.core.rules.Rule
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
-abstract class ComposeRuleBase : Rule {
+abstract class KotlinRuleBase : Rule {
 
-    protected fun visitComposableCalls(
+    protected fun visitCallExpressions(
         context: AnalysisContext,
         block: (KtCallExpression) -> Unit
     ) {
