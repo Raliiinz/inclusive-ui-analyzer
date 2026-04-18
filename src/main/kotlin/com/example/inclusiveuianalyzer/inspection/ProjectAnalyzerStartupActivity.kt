@@ -35,7 +35,7 @@ class ProjectAnalyzerStartupActivity : StartupActivity.DumbAware {
 
         xmlFiles.forEach { virtualFile ->
             val psiFile = psiManager.findFile(virtualFile) as? XmlFile ?: return@forEach
-            val issues = engine.analyze(psiFile, Profile.VISION)
+            val issues = engine.analyze(psiFile, Profile.COGNITIVE)
 
             issues.forEach { issue ->
                 logger.warn("File: ${psiFile.name}, Element: ${issue.element}, Issue: ${issue.message}")
