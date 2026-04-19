@@ -3,48 +3,26 @@ package com.example.inclusiveuianalyzer.core.rules.compose
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
 import com.example.inclusiveuianalyzer.core.model.Issue
 import com.example.inclusiveuianalyzer.core.model.Profile
-import com.example.inclusiveuianalyzer.core.model.Severity
 import com.example.inclusiveuianalyzer.core.rules.AnalysisTarget
-import com.example.inclusiveuianalyzer.core.rules.KotlinRuleBase
-import com.example.inclusiveuianalyzer.core.utils.compose.ComposeUtils
+import com.example.inclusiveuianalyzer.core.rules.KotlinCallExpressionRule
 
-class TextAlternativeRule : KotlinRuleBase() {
-
-    override val profile = Profile.VISION
-    override val target = AnalysisTarget.JETPACK_COMPOSE
-
-    private val imageComponents = setOf("Icon", "Image")
+class TextAlternativeRule : KotlinCallExpressionRule(
+    profile = Profile.VISION,
+    target = AnalysisTarget.JETPACK_COMPOSE
+) {
 
     override fun check(context: AnalysisContext): List<Issue> {
         val issues = mutableListOf<Issue>()
 
         visitCallExpressions(context) { call ->
-
-            val name = ComposeUtils.getCallName(call) ?: return@visitCallExpressions
-
-            if (name in imageComponents) {
-
-                val modifier = ComposeUtils.findModifierChain(call)
-
-                val hasContentDescInArgs = call.valueArguments.any {
-                    it.getArgumentName()?.asName?.identifier == "contentDescription"
-                }
-
-                val hasInModifier = ComposeUtils.containsContentDescription(modifier)
-
-                if (!hasContentDescInArgs && !hasInModifier) {
-                    issues.add(
-                        Issue(
-                            "Missing contentDescription for $name",
-                            call,
-                            Severity.WARNING,
-                            profile
-                        )
-                    )
-                }
-            }
+            val componentName = TextAlternativeAnalyzer.analyze(call) ?: return@visitCallExpressions
+            issues.add(buildIssue(buildMessage(componentName), call))
         }
 
         return issues
+    }
+
+    private fun buildMessage(componentName: String): String {
+        return "Missing contentDescription for $componentName"
     }
 }

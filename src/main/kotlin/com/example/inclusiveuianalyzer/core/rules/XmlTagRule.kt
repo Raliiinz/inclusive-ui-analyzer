@@ -1,12 +1,15 @@
-package com.example.inclusiveuianalyzer.core.rules.xml
+package com.example.inclusiveuianalyzer.core.rules
 
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
-import com.example.inclusiveuianalyzer.core.rules.Rule
+import com.example.inclusiveuianalyzer.core.model.Profile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiRecursiveElementVisitor
 import com.intellij.psi.xml.XmlTag
 
-abstract class XmlRuleBase : Rule {
+abstract class XmlTagRule(
+    profile: Profile,
+    target: AnalysisTarget
+) : BaseRule(profile, target) {
 
     protected fun visitTags(
         context: AnalysisContext,
