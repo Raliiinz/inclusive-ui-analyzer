@@ -13,4 +13,9 @@ class AnalyzerEngine {
         val context = AnalysisContext(file, file.project, profile)
         return ruleEngine.runRules(context)
     }
+
+    fun analyze(file: PsiFile): List<Issue> {
+        return com.example.inclusiveuianalyzer.core.model.Profile.entries
+            .flatMap { profile -> analyze(file, profile) }
+    }
 }

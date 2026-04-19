@@ -8,4 +8,10 @@ data class AudioAnalysisState(
     fun hasAudio(): Boolean = audioCalls.isNotEmpty()
 
     fun hasAlternative(): Boolean = hasHaptic || hasVisual
+
+    fun merge(other: AudioAnalysisState) {
+        audioCalls.addAll(other.audioCalls)
+        hasHaptic = hasHaptic || other.hasHaptic
+        hasVisual = hasVisual || other.hasVisual
+    }
 }

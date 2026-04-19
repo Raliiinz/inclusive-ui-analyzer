@@ -3,6 +3,7 @@ package com.example.inclusiveuianalyzer.core.rules
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
 import com.example.inclusiveuianalyzer.core.model.Issue
 import com.example.inclusiveuianalyzer.core.rules.audio.AudioUsageRule
+import com.example.inclusiveuianalyzer.core.rules.cognitive.ReadabilityRule
 import com.example.inclusiveuianalyzer.core.rules.compose.ClearAndSetSemanticsRule
 import com.example.inclusiveuianalyzer.core.rules.compose.SemanticsRule
 import com.example.inclusiveuianalyzer.core.rules.compose.TextAlternativeRule
@@ -11,6 +12,7 @@ import com.example.inclusiveuianalyzer.core.rules.xml.ContrastRule
 import com.example.inclusiveuianalyzer.core.rules.xml.ImportantForAccessibilityRule
 import com.example.inclusiveuianalyzer.core.rules.xml.TouchTargetSizeRule
 import com.example.inclusiveuianalyzer.core.utils.FileTypeUtils
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 
 class RuleEngine {
@@ -31,20 +33,23 @@ class RuleEngine {
 
         // Audio
         rules.add(AudioUsageRule())
+
+        // Cognitive
+        rules.add(ReadabilityRule())
     }
 
     fun runRules(context: AnalysisContext): List<Issue> {
         return rules
-            .filter { it.profile == context.profile }
-            .filter { isApplicable(it, context.file) }
-            .flatMap { it.check(context) }
+            .filter { rule -> rule.profile == context.profile }
+            .filter { rule -> isApplicable(rule, context.file) }
+            .flatMap { rule -> rule.check(context) }
     }
 
     private fun isApplicable(rule: Rule, file: PsiFile): Boolean {
-        val vf = file.virtualFile ?: return false
+        val virtualFile = file.virtualFile ?: return false
 
         return when (rule.target) {
-            AnalysisTarget.ANDROID_LAYOUT_XML -> isLayoutFile(vf)
+            AnalysisTarget.ANDROID_LAYOUT_XML -> isLayoutFile(virtualFile)
             AnalysisTarget.KOTLIN_CLASS -> FileTypeUtils.isKotlin(file)
             AnalysisTarget.JAVA_CLASS -> FileTypeUtils.isJava(file)
             AnalysisTarget.ALL_XML -> FileTypeUtils.isXml(file)
@@ -53,7 +58,7 @@ class RuleEngine {
         }
     }
 
-    private fun isLayoutFile(file: com.intellij.openapi.vfs.VirtualFile): Boolean {
+    private fun isLayoutFile(file: VirtualFile): Boolean {
         var current = file.parent
         while (current != null) {
             if (current.name.startsWith("layout") && current.parent?.name == "res") {
@@ -61,12 +66,15 @@ class RuleEngine {
             }
             current = current.parent
         }
+
         return false
     }
 
     private fun isComposeFile(file: PsiFile): Boolean {
-        if (!FileTypeUtils.isKotlin(file)) return false
-        val text = file.text ?: return false
-        return text.contains("@Composable")
+        if (!FileTypeUtils.isKotlin(file)) {
+            return false
+        }
+
+        return file.text.contains("@Composable")
     }
 }

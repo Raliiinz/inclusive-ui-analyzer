@@ -2,7 +2,6 @@ package com.example.inclusiveuianalyzer.inspection
 
 import com.example.inclusiveuianalyzer.core.engine.AnalyzerEngine
 import com.example.inclusiveuianalyzer.core.engine.AnalyzerEngineHolder
-import com.example.inclusiveuianalyzer.core.model.Profile
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -35,7 +34,7 @@ class ProjectAnalyzerStartupActivity : StartupActivity.DumbAware {
 
         xmlFiles.forEach { virtualFile ->
             val psiFile = psiManager.findFile(virtualFile) as? XmlFile ?: return@forEach
-            val issues = engine.analyze(psiFile, Profile.VISION)
+            val issues = engine.analyze(psiFile)
 
             issues.forEach { issue ->
                 logger.warn("File: ${psiFile.name}, Element: ${issue.element}, Issue: ${issue.message}")
