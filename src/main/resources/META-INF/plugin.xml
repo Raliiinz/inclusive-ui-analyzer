@@ -24,6 +24,10 @@
     <extensions defaultExtensionNs="com.intellij">
 
         <postStartupActivity implementation="com.example.inclusiveuianalyzer.inspection.ProjectAnalyzerStartupActivity"/>
+        <toolWindow
+                id="Accessibility Report"
+                anchor="right"
+                factoryClass="com.example.inclusiveuianalyzer.report.AccessibilityReportToolWindowFactory"/>
         <localInspection
                 language=""
                 groupPath="Android"
