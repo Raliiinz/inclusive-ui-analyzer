@@ -91,6 +91,7 @@ class AnalysisReportService(private val project: Project) {
         }
 
         return ReportedIssue(
+            code = code,
             message = message,
             profile = profile,
             severity = severity,

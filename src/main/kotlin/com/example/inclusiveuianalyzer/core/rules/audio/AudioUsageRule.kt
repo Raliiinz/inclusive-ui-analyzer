@@ -2,6 +2,7 @@ package com.example.inclusiveuianalyzer.core.rules.audio
 
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
 import com.example.inclusiveuianalyzer.core.model.Issue
+import com.example.inclusiveuianalyzer.core.model.IssueCode
 import com.example.inclusiveuianalyzer.core.model.Profile
 import com.example.inclusiveuianalyzer.core.rules.AnalysisTarget
 import com.example.inclusiveuianalyzer.core.rules.BaseRule
@@ -23,7 +24,7 @@ class AudioUsageRule : BaseRule(
         for (function in functions) {
             val state = AudioUsageAnalyzer.analyze(function, functionMap)
             if (state.hasAudio() && !state.hasAlternative()) {
-                issues.add(buildIssue(buildMessage(function, state), function))
+                issues.add(buildIssue(IssueCode.AUDIO_WITHOUT_ALTERNATIVE, buildMessage(function, state), function))
             }
         }
 

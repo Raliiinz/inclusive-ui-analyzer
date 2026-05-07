@@ -2,6 +2,7 @@ package com.example.inclusiveuianalyzer.core.rules.cognitive
 
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
 import com.example.inclusiveuianalyzer.core.model.Issue
+import com.example.inclusiveuianalyzer.core.model.IssueCode
 import com.example.inclusiveuianalyzer.core.model.Profile
 import com.example.inclusiveuianalyzer.core.rules.AnalysisTarget
 import com.example.inclusiveuianalyzer.core.rules.XmlTagRule
@@ -47,7 +48,7 @@ class ReadabilityRule : XmlTagRule(
     private fun analyzeText(text: String, element: PsiElement): Issue? {
         val state = ReadabilityAnalyzer.analyze(text)
         return if (state.isHard()) {
-            buildIssue(buildMessage(text, state), element)
+            buildIssue(IssueCode.HARD_TO_READ_TEXT, buildMessage(text, state), element)
         } else {
             null
         }

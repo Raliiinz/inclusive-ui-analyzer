@@ -2,6 +2,7 @@ package com.example.inclusiveuianalyzer.report
 
 import com.example.inclusiveuianalyzer.core.model.Profile
 import com.example.inclusiveuianalyzer.core.model.Severity
+import com.example.inclusiveuianalyzer.core.model.IssueCode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 
@@ -12,6 +13,7 @@ data class AnalysisReport(
 }
 
 data class ReportedIssue(
+    val code: IssueCode,
     val message: String,
     val profile: Profile,
     val severity: Severity,
