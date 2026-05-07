@@ -1,6 +1,7 @@
 package com.example.inclusiveuianalyzer.report
 
 import com.example.inclusiveuianalyzer.core.model.Profile
+import com.example.inclusiveuianalyzer.inspection.fixes.AccessibilityIssueFixApplier
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -13,9 +14,11 @@ import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.treeStructure.Tree
 import java.awt.BorderLayout
+import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.BoxLayout
 import javax.swing.BorderFactory
 import javax.swing.JButton
 import javax.swing.JComponent
@@ -25,6 +28,7 @@ import javax.swing.event.TreeSelectionEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
 import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreeSelectionModel
 
 class AccessibilityReportPanel(
     private val project: Project
@@ -39,6 +43,10 @@ class AccessibilityReportPanel(
     private val detailsArea = JTextArea()
     private val summaryLabel = JBLabel("Analyzing project...")
     private val refreshButton = JButton("Refresh", AllIcons.Actions.Refresh)
+    private val applyFixButton = JButton("Apply Fix", AllIcons.Actions.QuickfixBulb)
+    private val applyFileFixesButton = JButton("Fix File", AllIcons.Actions.QuickfixBulb)
+    private val applySelectionFixesButton = JButton("Fix Selection", AllIcons.Actions.QuickfixBulb)
+    private val applyAllFixesButton = JButton("Fix All Safe", AllIcons.Actions.QuickfixBulb)
     private val listener: (AnalysisReport) -> Unit = { report -> renderReport(report) }
 
     init {
@@ -51,6 +59,7 @@ class AccessibilityReportPanel(
         tree.isRootVisible = false
         tree.showsRootHandles = true
         tree.cellRenderer = ReportTreeCellRenderer()
+        tree.selectionModel.selectionMode = TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION
 
         detailsArea.isEditable = false
         detailsArea.lineWrap = true
@@ -63,6 +72,58 @@ class AccessibilityReportPanel(
             logger.info("Manual refresh triggered from Accessibility Report panel")
             summaryLabel.text = "Refreshing analysis..."
             reportService.refreshReport()
+        }
+
+        applyFixButton.isEnabled = false
+        applyFixButton.addActionListener {
+            val issue = getSelectedIssue() ?: return@addActionListener
+            logger.info("Applying fix from report panel for issue ${issue.code} in ${issue.fileName}")
+            if (AccessibilityIssueFixApplier.apply(project, issue)) {
+                detailsArea.text = buildIssueDetails(issue) + "\n\nFix applied. Use Undo (Cmd/Ctrl+Z) to revert."
+                reportService.refreshReport()
+            }
+        }
+
+        applyFileFixesButton.isEnabled = false
+        applyFileFixesButton.addActionListener {
+            val issues = getIssuesForCurrentFile()
+            val appliedCount = AccessibilityIssueFixApplier.applyAll(
+                project,
+                issues,
+                "Apply Accessibility Fixes in File"
+            )
+            if (appliedCount > 0) {
+                detailsArea.text = "Applied $appliedCount safe fixes in the current file.\n\nUse Undo (Cmd/Ctrl+Z) to revert."
+                reportService.refreshReport()
+            }
+        }
+
+        applySelectionFixesButton.isEnabled = false
+        applySelectionFixesButton.addActionListener {
+            val issues = getIssuesFromSelection()
+            val appliedCount = AccessibilityIssueFixApplier.applyAll(
+                project,
+                issues,
+                "Apply Accessibility Fixes in Selection"
+            )
+            if (appliedCount > 0) {
+                detailsArea.text = "Applied $appliedCount safe fixes in the current selection.\n\nUse Undo (Cmd/Ctrl+Z) to revert."
+                reportService.refreshReport()
+            }
+        }
+
+        applyAllFixesButton.isEnabled = false
+        applyAllFixesButton.addActionListener {
+            val issues = reportService.getReport().issues
+            val appliedCount = AccessibilityIssueFixApplier.applyAll(
+                project,
+                issues,
+                "Apply All Safe Accessibility Fixes"
+            )
+            if (appliedCount > 0) {
+                detailsArea.text = "Applied $appliedCount safe fixes in the whole project.\n\nUse Undo (Cmd/Ctrl+Z) to revert."
+                reportService.refreshReport()
+            }
         }
 
         tree.addTreeSelectionListener(::onSelectionChanged)
@@ -83,24 +144,46 @@ class AccessibilityReportPanel(
         val panel = JBPanel<JBPanel<*>>(BorderLayout())
         panel.border = BorderFactory.createEmptyBorder(0, 0, 8, 0)
         panel.add(summaryLabel, BorderLayout.WEST)
-        panel.add(refreshButton, BorderLayout.EAST)
+        val actions = JBPanel<JBPanel<*>>(FlowLayout(FlowLayout.RIGHT, 8, 0))
+        actions.add(applyFixButton)
+        actions.add(applyFileFixesButton)
+        actions.add(applySelectionFixesButton)
+        actions.add(applyAllFixesButton)
+        actions.add(refreshButton)
+        panel.add(actions, BorderLayout.EAST)
         return panel
     }
 
     private fun buildContent(): JComponent {
         val splitter = OnePixelSplitter(false, 0.42f)
         splitter.firstComponent = JBScrollPane(tree)
-        splitter.secondComponent = ScrollPaneFactory.createScrollPane(detailsArea)
+        val detailsPanel = JBPanel<JBPanel<*>>()
+        detailsPanel.layout = BoxLayout(detailsPanel, BoxLayout.Y_AXIS)
+        detailsPanel.add(ScrollPaneFactory.createScrollPane(detailsArea))
+        splitter.secondComponent = detailsPanel
         return splitter
     }
 
     private fun onSelectionChanged(@Suppress("UNUSED_PARAMETER") event: TreeSelectionEvent) {
         val node = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return
+        updateBulkActionButtons()
         when (val userObject = node.userObject) {
-            is ReportedIssue -> detailsArea.text = buildIssueDetails(userObject)
-            is ProfileSummary -> detailsArea.text = buildProfileDetails(userObject)
-            is FileSummary -> detailsArea.text = buildFileDetails(userObject)
-            else -> detailsArea.text = "Select a category or issue to see details."
+            is ReportedIssue -> {
+                detailsArea.text = buildIssueDetails(userObject)
+                applyFixButton.isEnabled = AccessibilityIssueFixApplier.canApply(userObject)
+            }
+            is ProfileSummary -> {
+                detailsArea.text = buildProfileDetails(userObject)
+                applyFixButton.isEnabled = false
+            }
+            is FileSummary -> {
+                detailsArea.text = buildFileDetails(userObject)
+                applyFixButton.isEnabled = false
+            }
+            else -> {
+                detailsArea.text = "Select a category or issue to see details."
+                applyFixButton.isEnabled = false
+            }
         }
     }
 
@@ -111,6 +194,10 @@ class AccessibilityReportPanel(
         if (report.isEmpty()) {
             logger.info("Report is empty, showing empty state")
             summaryLabel.text = "No accessibility issues found"
+            applyFixButton.isEnabled = false
+            applyFileFixesButton.isEnabled = false
+            applySelectionFixesButton.isEnabled = false
+            applyAllFixesButton.isEnabled = false
             treeRoot.add(DefaultMutableTreeNode("No issues"))
             treeModel.reload()
             expandAll()
@@ -147,6 +234,7 @@ class AccessibilityReportPanel(
         summaryLabel.text = "Found ${report.issues.size} issues in $totalFiles files"
         treeModel.reload()
         expandAll()
+        updateBulkActionButtons()
         logger.info("Report rendered successfully with ${report.issues.size} issues and $totalFiles files")
     }
 
@@ -168,11 +256,19 @@ class AccessibilityReportPanel(
 
     private fun buildIssueDetails(issue: ReportedIssue): String {
         val line = issue.lineNumber?.let { "Line: $it\n" } ?: ""
+        val quickFixText = if (AccessibilityIssueFixApplier.canApply(issue)) {
+            "Available actions: Apply Fix, Fix File, Fix Selection, Fix All Safe\nUndo: Cmd/Ctrl+Z\n"
+        } else {
+            "Available actions: no automatic fix for this issue yet\n"
+        }
         return buildString {
+            append("Issue Code: ${issue.code}\n")
             append("Category: ${issue.profile}\n")
             append("Severity: ${issue.severity}\n")
             append("File: ${issue.fileName}\n")
             append(line)
+            append("\n")
+            append(quickFixText)
             append("\n")
             append(issue.message)
             append("\n\nDouble-click this item in the tree to navigate to code.")
@@ -183,7 +279,9 @@ class AccessibilityReportPanel(
         return buildString {
             append("${summary.profileLabel}\n")
             append("Issues: ${summary.issueCount}\n")
-            append("\nSelect a file or issue to see more details.")
+            append("\nAvailable bulk action: Fix Selection or Fix All Safe")
+            append("\nUndo: Cmd/Ctrl+Z")
+            append("\n\nSelect a file or issue to see more details.")
         }
     }
 
@@ -191,13 +289,71 @@ class AccessibilityReportPanel(
         return buildString {
             append("File: ${summary.fileName}\n")
             append("Issues: ${summary.issueCount}\n")
-            append("\nSelect an issue to inspect it.")
+            append("\nAvailable bulk action: Fix File")
+            append("\nUndo: Cmd/Ctrl+Z")
+            append("\n\nSelect an issue to inspect it.")
         }
     }
 
     override fun dispose() {
         logger.info("Disposing AccessibilityReportPanel for project: ${project.name}")
         reportService.removeListener(listener)
+    }
+
+    private fun getSelectedIssue(): ReportedIssue? {
+        val node = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return null
+        return node.userObject as? ReportedIssue
+    }
+
+    private fun getIssuesForCurrentFile(): List<ReportedIssue> {
+        val node = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return emptyList()
+        return when (node.userObject) {
+            is ReportedIssue -> collectIssues((node.parent as? DefaultMutableTreeNode) ?: node)
+            is FileSummary -> collectIssues(node)
+            else -> emptyList()
+        }
+    }
+
+    private fun getIssuesFromSelection(): List<ReportedIssue> {
+        return tree.selectionPaths
+            ?.flatMap { path ->
+                val node = path.lastPathComponent as? DefaultMutableTreeNode ?: return@flatMap emptyList()
+                collectIssues(node)
+            }
+            ?.distinctBy { issueKey(it) }
+            .orEmpty()
+    }
+
+    private fun collectIssues(node: DefaultMutableTreeNode): List<ReportedIssue> {
+        val directIssue = node.userObject as? ReportedIssue
+        if (directIssue != null) {
+            return listOf(directIssue)
+        }
+
+        val result = mutableListOf<ReportedIssue>()
+        val children = node.children()
+        while (children.hasMoreElements()) {
+            val child = children.nextElement() as? DefaultMutableTreeNode ?: continue
+            result += collectIssues(child)
+        }
+        return result
+    }
+
+    private fun updateBulkActionButtons() {
+        val currentFileIssues = getIssuesForCurrentFile()
+        val selectedIssues = getIssuesFromSelection()
+        val allIssues = reportService.getReport().issues
+
+        applyFileFixesButton.isEnabled = currentFileIssues.any(AccessibilityIssueFixApplier::canApply)
+        applySelectionFixesButton.isEnabled = selectedIssues.any(AccessibilityIssueFixApplier::canApply)
+        applyAllFixesButton.isEnabled = allIssues.any(AccessibilityIssueFixApplier::canApply)
+    }
+
+    private fun issueKey(issue: ReportedIssue): String {
+        val element = issue.pointer.element
+        val filePath = element?.containingFile?.virtualFile?.path ?: issue.fileName
+        val offset = element?.textOffset ?: -1
+        return "${issue.code}|$filePath|$offset"
     }
 
     private data class ProfileSummary(

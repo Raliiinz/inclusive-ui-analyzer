@@ -2,6 +2,7 @@ package com.example.inclusiveuianalyzer.core.rules.compose
 
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
 import com.example.inclusiveuianalyzer.core.model.Issue
+import com.example.inclusiveuianalyzer.core.model.IssueCode
 import com.example.inclusiveuianalyzer.core.model.Profile
 import com.example.inclusiveuianalyzer.core.rules.AnalysisTarget
 import com.example.inclusiveuianalyzer.core.rules.KotlinCallExpressionRule
@@ -16,7 +17,7 @@ class ClearAndSetSemanticsRule : KotlinCallExpressionRule(
 
         visitCallExpressions(context) { call ->
             if (ClearAndSetSemanticsAnalyzer.shouldReport(call)) {
-                issues.add(buildIssue(buildMessage(), call))
+                issues.add(buildIssue(IssueCode.CLEAR_AND_SET_SEMANTICS, buildMessage(), call))
             }
         }
 

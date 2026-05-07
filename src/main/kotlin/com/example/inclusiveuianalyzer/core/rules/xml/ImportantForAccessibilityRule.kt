@@ -2,6 +2,7 @@ package com.example.inclusiveuianalyzer.core.rules.xml
 
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
 import com.example.inclusiveuianalyzer.core.model.Issue
+import com.example.inclusiveuianalyzer.core.model.IssueCode
 import com.example.inclusiveuianalyzer.core.model.Profile
 import com.example.inclusiveuianalyzer.core.rules.AnalysisTarget
 import com.example.inclusiveuianalyzer.core.rules.XmlTagRule
@@ -21,7 +22,7 @@ class ImportantForAccessibilityRule : XmlTagRule(
                 tag.getAttributeValue("android:importantForAccessibility")
             ) ?: return@visitTags
 
-            issues.add(buildIssue(buildMessage(tag, hiddenValue), tag))
+            issues.add(buildIssue(IssueCode.HIDDEN_FROM_ACCESSIBILITY, buildMessage(tag, hiddenValue), tag))
         }
 
         return issues

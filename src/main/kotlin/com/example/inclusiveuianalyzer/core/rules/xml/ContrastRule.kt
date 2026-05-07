@@ -2,6 +2,7 @@ package com.example.inclusiveuianalyzer.core.rules.xml
 
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
 import com.example.inclusiveuianalyzer.core.model.Issue
+import com.example.inclusiveuianalyzer.core.model.IssueCode
 import com.example.inclusiveuianalyzer.core.model.Profile
 import com.example.inclusiveuianalyzer.core.rules.AnalysisTarget
 import com.example.inclusiveuianalyzer.core.rules.XmlTagRule
@@ -18,7 +19,7 @@ class ContrastRule : XmlTagRule(
 
         visitTags(context) { tag ->
             val contrast = ContrastAnalyzer.analyze(context, tag) ?: return@visitTags
-            issues.add(buildIssue(buildMessage(tag, contrast), tag))
+            issues.add(buildIssue(IssueCode.LOW_CONTRAST, buildMessage(tag, contrast), tag))
         }
 
         return issues

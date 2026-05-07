@@ -2,6 +2,7 @@ package com.example.inclusiveuianalyzer.core.rules.xml
 
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
 import com.example.inclusiveuianalyzer.core.model.Issue
+import com.example.inclusiveuianalyzer.core.model.IssueCode
 import com.example.inclusiveuianalyzer.core.model.Profile
 import com.example.inclusiveuianalyzer.core.rules.AnalysisTarget
 import com.example.inclusiveuianalyzer.core.rules.XmlTagRule
@@ -18,7 +19,7 @@ class TouchTargetSizeRule : XmlTagRule(
 
         visitTags(context) { tag ->
             if (TouchTargetSizeAnalyzer.shouldReport(tag)) {
-                issues.add(buildIssue(buildMessage(tag), tag))
+                issues.add(buildIssue(IssueCode.SMALL_TOUCH_TARGET, buildMessage(tag), tag))
             }
         }
 

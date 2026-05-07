@@ -29,11 +29,21 @@
                 anchor="right"
                 factoryClass="com.example.inclusiveuianalyzer.report.AccessibilityReportToolWindowFactory"/>
         <localInspection
-                language=""
+                language="XML"
                 groupPath="Android"
                 groupName="Accessibility"
                 displayName="Inclusive UI Analysis"
-                shortName="InclusiveUI"
+                shortName="InclusiveUIXml"
+                implementationClass="com.example.inclusiveuianalyzer.inspection.InclusiveAccessibilityInspection"
+                level="WARNING"
+                enabledByDefault="true"
+                runForWholeFile="true"/>
+        <localInspection
+                language="kotlin"
+                groupPath="Android"
+                groupName="Accessibility"
+                displayName="Inclusive UI Analysis"
+                shortName="InclusiveUIKotlin"
                 implementationClass="com.example.inclusiveuianalyzer.inspection.InclusiveAccessibilityInspection"
                 level="WARNING"
                 enabledByDefault="true"
