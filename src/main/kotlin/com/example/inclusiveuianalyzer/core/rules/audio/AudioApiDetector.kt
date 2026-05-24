@@ -1,7 +1,5 @@
 package com.example.inclusiveuianalyzer.core.rules.audio
 
-import org.jetbrains.kotlin.psi.KtCallExpression
-
 object AudioApiDetector {
 
     private val audioApis = setOf(
@@ -10,9 +8,8 @@ object AudioApiDetector {
         "AudioManager"
     )
 
-    fun detect(call: KtCallExpression): String? {
-        val name = call.calleeExpression?.text ?: return null
-
-        return audioApis.find { name.contains(it) }
+    fun detect(text: String?): String? {
+        if (text == null) return null
+        return audioApis.find { text.contains(it) }
     }
 }

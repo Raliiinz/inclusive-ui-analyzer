@@ -1,20 +1,16 @@
 package com.example.inclusiveuianalyzer.report
 
 import com.example.inclusiveuianalyzer.core.engine.AnalyzerEngineHolder
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.search.FileTypeIndex
-import com.intellij.psi.search.GlobalSearchScope
-import org.jetbrains.kotlin.idea.KotlinFileType
 import java.util.concurrent.CopyOnWriteArrayList
 
 @Service(Service.Level.PROJECT)
@@ -60,24 +56,31 @@ class AnalysisReportService(private val project: Project) {
 
     private fun buildReport(): AnalysisReport {
         logger.info("Collecting project files for accessibility analysis")
-        val psiManager = PsiManager.getInstance(project)
-        val scope = GlobalSearchScope.projectScope(project)
-        val projectFiles = linkedSetOf<VirtualFile>()
 
-        projectFiles += FileTypeIndex.getFiles(XmlFileType.INSTANCE, scope)
-        projectFiles += FileTypeIndex.getFiles(KotlinFileType.INSTANCE, scope)
-        logger.info("Collected ${projectFiles.size} files for analysis")
+        val psiManager = PsiManager.getInstance(project)
+
+        val files = mutableListOf<VirtualFile>()
+
+        VfsUtilCore.iterateChildrenRecursively(project.baseDir, null) { file ->
+            if (!file.isDirectory) {
+                val ext = file.extension
+                if (ext == "kt" || ext == "xml") {
+                    files.add(file)
+                }
+            }
+            true
+        }
+
+        logger.info("Collected ${files.size} files")
 
         val issues = ApplicationManager.getApplication().runReadAction<List<ReportedIssue>> {
-            projectFiles.flatMap { virtualFile ->
-                val psiFile = psiManager.findFile(virtualFile) ?: return@flatMap emptyList()
-                logger.debug("Analyzing file: ${virtualFile.path}")
-                engine.analyze(psiFile).map { issue -> issue.toReportedIssue(project) }
+            files.flatMap { vf ->
+                val psiFile = psiManager.findFile(vf) ?: return@flatMap emptyList()
+                engine.analyze(psiFile).map { it.toReportedIssue(project) }
             }
         }
 
-        logger.info("Analysis complete. Built ${issues.size} reported issues")
-        return AnalysisReport(issues.sortedWith(compareBy(ReportedIssue::profile, ReportedIssue::fileName, ReportedIssue::lineNumber)))
+        return AnalysisReport(issues)
     }
 
     private fun com.example.inclusiveuianalyzer.core.model.Issue.toReportedIssue(project: Project): ReportedIssue {
