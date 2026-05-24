@@ -6,7 +6,7 @@ import com.example.inclusiveuianalyzer.core.model.IssueCode
 import com.example.inclusiveuianalyzer.core.model.Profile
 import com.example.inclusiveuianalyzer.core.rules.AnalysisTarget
 import com.example.inclusiveuianalyzer.core.rules.BaseRule
-import com.example.inclusiveuianalyzer.core.utils.KotlinPsiUtils
+import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
@@ -18,7 +18,7 @@ class AudioUsageRule : BaseRule(
     override fun check(context: AnalysisContext): List<Issue> {
         val file = context.file as? KtFile ?: return emptyList()
         val issues = mutableListOf<Issue>()
-        val functions = KotlinPsiUtils.getFunctions(file)
+        val functions = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).toList()
         val functionMap = buildFunctionMap(functions)
 
         for (function in functions) {
