@@ -6,6 +6,7 @@ import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
+import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
@@ -16,11 +17,21 @@ class InclusiveAccessibilityInspection : LocalInspectionTool() {
     private val engine = AnalyzerEngineHolder.instance
 
     override fun buildVisitor(
-        holder: com.intellij.codeInspection.ProblemsHolder,
+        holder: ProblemsHolder,
         isOnTheFly: Boolean
     ): PsiElementVisitor {
-        return PsiElementVisitor.EMPTY_VISITOR
+        return object : PsiElementVisitor() {
+            override fun visitFile(file: PsiFile) {
+                super.visitFile(file)
+                val issues = engine.analyze(file)
+
+                issues.forEach { issue ->
+                    holder.registerProblem(issue.element, issue.message)
+                }
+            }
+        }
     }
+
 
     override fun checkFile(
         file: PsiFile,

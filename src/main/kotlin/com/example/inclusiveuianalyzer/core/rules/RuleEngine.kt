@@ -71,9 +71,9 @@ class RuleEngine {
     }
 
     private fun isComposeFile(file: PsiFile): Boolean {
-        if (!FileTypeUtils.isKotlin(file)) {
-            return false
-        }
+        println("FILE: ${file.name}")
+        println("TEXT SAMPLE: ${file.text.take(100)}")
+        println("CHECKFILE CALLED: ${file.name}")
 
         return file.text.contains("@Composable")
     }
