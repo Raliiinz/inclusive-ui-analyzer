@@ -16,9 +16,9 @@ class AddMinimumTouchTargetQuickFix : LocalQuickFix {
         val tag = descriptor.psiElement as? XmlTag ?: return
 
         WriteCommandAction.runWriteCommandAction(project) {
-            tag.setAttribute("android:minWidth", "48dp")
-            tag.setAttribute("android:minHeight", "48dp")
-            XmlQuickFixSupport.formatTagAttributes(project, tag)
+            if (TouchTargetSizeFixSupport.apply(tag)) {
+                XmlQuickFixSupport.formatTagAttributes(project, tag)
+            }
         }
     }
 }

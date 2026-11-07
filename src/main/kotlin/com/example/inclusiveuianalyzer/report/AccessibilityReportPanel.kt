@@ -363,7 +363,6 @@ class AccessibilityReportPanel(
         val profileLabel: String = when (profile) {
             Profile.VISION -> "Vision"
             Profile.HEARING -> "Hearing"
-            Profile.COGNITIVE -> "Cognitive"
         }
 
         override fun toString(): String {

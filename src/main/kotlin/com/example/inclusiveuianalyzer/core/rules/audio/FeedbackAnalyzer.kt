@@ -11,8 +11,11 @@ object FeedbackAnalyzer {
 
     fun isVisual(call: KtCallExpression): Boolean {
         val name = call.calleeExpression?.text ?: return false
-        return name.contains("Toast")
-                || name.contains("Snackbar")
-                || name.contains("show")
+        return name.contains("Toast") ||
+                name.contains("Snackbar") ||
+                name.contains("showMessage") ||
+                name.contains("showError") ||
+                name.contains("announceForAccessibility")
     }
+
 }

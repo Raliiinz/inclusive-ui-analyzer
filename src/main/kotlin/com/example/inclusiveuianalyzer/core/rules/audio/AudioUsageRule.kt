@@ -39,8 +39,9 @@ class AudioUsageRule : BaseRule(
 
     private fun buildMessage(function: KtNamedFunction, state: AudioAnalysisState): String {
         val usedApis = state.audioCalls.joinToString()
-        return "Audio API used without alternative feedback.\n" +
+        return "Audio output used without alternative feedback.\n" +
                 "APIs: $usedApis\n" +
                 "Function: ${function.name}"
     }
+
 }

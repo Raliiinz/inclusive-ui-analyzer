@@ -17,7 +17,10 @@ object AccessibilityIssueFixApplier {
                 IssueCode.HIDDEN_FROM_ACCESSIBILITY,
                 IssueCode.SMALL_TOUCH_TARGET
             )
-            element is KtCallExpression -> issue.code == IssueCode.MISSING_TEXT_ALTERNATIVE
+            element is KtCallExpression -> issue.code in setOf(
+                IssueCode.MISSING_TEXT_ALTERNATIVE,
+                IssueCode.SMALL_TOUCH_TARGET
+            )
             else -> false
         }
     }
@@ -74,10 +77,12 @@ object AccessibilityIssueFixApplier {
                 true
             }
             IssueCode.SMALL_TOUCH_TARGET -> {
-                tag.setAttribute("android:minWidth", "48dp")
-                tag.setAttribute("android:minHeight", "48dp")
-                XmlQuickFixSupport.formatTagAttributes(project, tag)
-                true
+                if (TouchTargetSizeFixSupport.apply(tag)) {
+                    XmlQuickFixSupport.formatTagAttributes(project, tag)
+                    true
+                } else {
+                    false
+                }
             }
             else -> false
         }
@@ -86,6 +91,7 @@ object AccessibilityIssueFixApplier {
     private fun applyToComposeCall(project: Project, code: IssueCode, call: KtCallExpression): Boolean {
         return when (code) {
             IssueCode.MISSING_TEXT_ALTERNATIVE -> AddComposeContentDescriptionQuickFix.applyToCall(project, call)
+            IssueCode.SMALL_TOUCH_TARGET -> AddComposeTouchTargetQuickFix.applyToCall(project, call)
             else -> false
         }
     }

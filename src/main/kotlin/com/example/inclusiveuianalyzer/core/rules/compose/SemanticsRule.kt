@@ -25,6 +25,6 @@ class SemanticsRule : KotlinCallExpressionRule(
     }
 
     private fun buildMessage(): String {
-        return "Missing Modifier.semantics for accessibility"
+        return "Custom Compose gesture may need explicit accessibility semantics"
     }
 }
