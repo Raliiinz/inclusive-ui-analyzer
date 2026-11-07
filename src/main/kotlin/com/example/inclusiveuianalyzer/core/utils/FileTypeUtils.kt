@@ -7,7 +7,8 @@ object FileTypeUtils {
 
 
     fun isKotlin(file: PsiFile): Boolean {
-        return file.fileType == KotlinFileType.INSTANCE
+        return file.name.endsWith(".kt", ignoreCase = true) ||
+                file.fileType == KotlinFileType.INSTANCE
     }
     fun isJava(file: PsiFile) = file.name.endsWith(".java")
     fun isXml(file: PsiFile) = file.name.endsWith(".xml")

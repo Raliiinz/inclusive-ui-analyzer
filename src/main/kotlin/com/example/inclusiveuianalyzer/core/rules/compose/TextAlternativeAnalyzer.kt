@@ -5,7 +5,12 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 
 object TextAlternativeAnalyzer {
 
-    private val imageComponents = setOf("Icon", "Image")
+    private val imageComponents = setOf(
+        "Icon",
+        "Image",
+        "AsyncImage",
+        "SubcomposeAsyncImage"
+    )
 
     fun analyze(call: KtCallExpression): String? {
         val componentName = ComposeUtils.getCallName(call) ?: return null

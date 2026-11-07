@@ -7,6 +7,7 @@ object SemanticsAnalyzer {
 
     fun shouldReport(call: KtCallExpression): Boolean {
         val modifier = ComposeUtils.findModifierChain(call)
-        return modifier != null && !ComposeUtils.containsSemantics(modifier)
+        return ComposeUtils.containsInteractiveModifier(modifier) &&
+                !ComposeUtils.containsSemantics(modifier)
     }
 }

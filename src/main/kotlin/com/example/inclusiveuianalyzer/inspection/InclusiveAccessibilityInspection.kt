@@ -6,32 +6,14 @@ import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
-import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.psi.PsiElementVisitor
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.psi.PsiFile
 
 class InclusiveAccessibilityInspection : LocalInspectionTool() {
 
     private val logger = Logger.getInstance(InclusiveAccessibilityInspection::class.java)
     private val engine = AnalyzerEngineHolder.instance
-
-    override fun buildVisitor(
-        holder: ProblemsHolder,
-        isOnTheFly: Boolean
-    ): PsiElementVisitor {
-        return object : PsiElementVisitor() {
-            override fun visitFile(file: PsiFile) {
-                super.visitFile(file)
-                val issues = engine.analyze(file)
-
-                issues.forEach { issue ->
-                    holder.registerProblem(issue.element, issue.message)
-                }
-            }
-        }
-    }
-
 
     override fun checkFile(
         file: PsiFile,
@@ -46,14 +28,21 @@ class InclusiveAccessibilityInspection : LocalInspectionTool() {
 
             issues.map { issue ->
                 val fixes = AccessibilityQuickFixFactory.create(issue)
+                val highlightType = when (issue.severity) {
+                    com.example.inclusiveuianalyzer.core.model.Severity.ERROR -> ProblemHighlightType.ERROR
+                    com.example.inclusiveuianalyzer.core.model.Severity.WARNING -> ProblemHighlightType.GENERIC_ERROR_OR_WARNING
+                    com.example.inclusiveuianalyzer.core.model.Severity.INFO -> ProblemHighlightType.INFORMATION
+                }
                 manager.createProblemDescriptor(
                     issue.element,
                     issue.message,
                     isOnTheFly,
                     fixes,
-                    ProblemHighlightType.GENERIC_ERROR_OR_WARNING
+                    highlightType
                 )
             }.toTypedArray()
+        } catch (e: ProcessCanceledException) {
+            throw e
         } catch (e: Exception) {
             logger.error("Error during inspection for file ${file.name}", e)
             null

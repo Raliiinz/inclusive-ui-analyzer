@@ -7,7 +7,7 @@ enum class Severity {
 }
 
 enum class Profile {
-    VISION, HEARING, COGNITIVE
+    VISION, HEARING
 }
 
 enum class IssueCode {
@@ -16,10 +16,10 @@ enum class IssueCode {
     SMALL_TOUCH_TARGET,
     LOW_CONTRAST,
     MISSING_SEMANTICS,
+    MISSING_HEADING_SEMANTICS,
     MISSING_TEXT_ALTERNATIVE,
     CLEAR_AND_SET_SEMANTICS,
-    AUDIO_WITHOUT_ALTERNATIVE,
-    HARD_TO_READ_TEXT
+    AUDIO_WITHOUT_ALTERNATIVE
 }
 
 data class Issue(

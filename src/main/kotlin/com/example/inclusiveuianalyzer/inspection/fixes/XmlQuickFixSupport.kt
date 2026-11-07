@@ -60,6 +60,7 @@ object XmlQuickFixSupport {
             append("\n")
             append(attributeIndent)
             append(attributes.joinToString("\n$attributeIndent"))
+            append("\n")
             append(indent)
             append(closingMarker)
         }

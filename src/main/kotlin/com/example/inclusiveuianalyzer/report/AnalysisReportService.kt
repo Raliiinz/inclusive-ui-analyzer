@@ -1,16 +1,21 @@
 package com.example.inclusiveuianalyzer.report
 
 import com.example.inclusiveuianalyzer.core.engine.AnalyzerEngineHolder
+import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.search.FileTypeIndex
+import com.intellij.psi.search.FilenameIndex
+import com.intellij.psi.search.GlobalSearchScope
 import java.util.concurrent.CopyOnWriteArrayList
 
 @Service(Service.Level.PROJECT)
@@ -35,6 +40,16 @@ class AnalysisReportService(private val project: Project) {
     }
 
     fun refreshReport() {
+        if (project.isDisposed) return
+
+        if (DumbService.isDumb(project)) {
+            logger.info("Project indexes are not ready. Delaying report refresh.")
+            DumbService.getInstance(project).runWhenSmart {
+                refreshReport()
+            }
+            return
+        }
+
         logger.info("Starting report refresh for project: ${project.name}")
         ApplicationManager.getApplication().executeOnPooledThread {
             val report = buildReport()
@@ -58,25 +73,26 @@ class AnalysisReportService(private val project: Project) {
         logger.info("Collecting project files for accessibility analysis")
 
         val psiManager = PsiManager.getInstance(project)
+        val scope = GlobalSearchScope.projectScope(project)
+        val files = linkedSetOf<VirtualFile>()
+        val xmlFiles = FileTypeIndex.getFiles(XmlFileType.INSTANCE, scope)
+        val kotlinFiles = FilenameIndex.getAllFilesByExt(project, "kt", scope)
+        files += xmlFiles
+        files += kotlinFiles
 
-        val files = mutableListOf<VirtualFile>()
-
-        VfsUtilCore.iterateChildrenRecursively(project.baseDir, null) { file ->
-            if (!file.isDirectory) {
-                val ext = file.extension
-                if (ext == "kt" || ext == "xml") {
-                    files.add(file)
-                }
-            }
-            true
-        }
-
-        logger.info("Collected ${files.size} files")
+        logger.info(
+            "Collected ${files.size} files: XML=${xmlFiles.size}, Kotlin=${kotlinFiles.size}"
+        )
 
         val issues = ApplicationManager.getApplication().runReadAction<List<ReportedIssue>> {
             files.flatMap { vf ->
+                ProgressManager.checkCanceled()
                 val psiFile = psiManager.findFile(vf) ?: return@flatMap emptyList()
-                engine.analyze(psiFile).map { it.toReportedIssue(project) }
+                val fileIssues = engine.analyze(psiFile)
+                if (fileIssues.isNotEmpty()) {
+                    logger.info("Found ${fileIssues.size} issues in ${vf.path}")
+                }
+                fileIssues.map { it.toReportedIssue(project) }
             }
         }
 

@@ -3,8 +3,9 @@ package com.example.inclusiveuianalyzer.core.rules
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
 import com.example.inclusiveuianalyzer.core.model.Issue
 import com.example.inclusiveuianalyzer.core.rules.audio.AudioUsageRule
-import com.example.inclusiveuianalyzer.core.rules.cognitive.ReadabilityRule
 import com.example.inclusiveuianalyzer.core.rules.compose.ClearAndSetSemanticsRule
+import com.example.inclusiveuianalyzer.core.rules.compose.ComposeTouchTargetSizeRule
+import com.example.inclusiveuianalyzer.core.rules.compose.HeadingSemanticsRule
 import com.example.inclusiveuianalyzer.core.rules.compose.SemanticsRule
 import com.example.inclusiveuianalyzer.core.rules.compose.TextAlternativeRule
 import com.example.inclusiveuianalyzer.core.rules.xml.ContentDescriptionRule
@@ -14,29 +15,27 @@ import com.example.inclusiveuianalyzer.core.rules.xml.TouchTargetSizeRule
 import com.example.inclusiveuianalyzer.core.utils.FileTypeUtils
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtFile
 
 class RuleEngine {
 
-    private val rules = mutableListOf<Rule>()
-
-    init {
+    private val rules: List<Rule> = listOf(
         // XML
-        rules.add(ContentDescriptionRule())
-        rules.add(ImportantForAccessibilityRule())
-        rules.add(TouchTargetSizeRule())
-        rules.add(ContrastRule())
-
+        ContentDescriptionRule(),
+        ImportantForAccessibilityRule(),
+        TouchTargetSizeRule(),
+        ContrastRule(),
         // Compose
-        rules.add(SemanticsRule())
-        rules.add(ClearAndSetSemanticsRule())
-        rules.add(TextAlternativeRule())
-
+        HeadingSemanticsRule(),
+        SemanticsRule(),
+        ClearAndSetSemanticsRule(),
+        TextAlternativeRule(),
+        ComposeTouchTargetSizeRule(),
         // Audio
-        rules.add(AudioUsageRule())
-
-        // Cognitive
-        rules.add(ReadabilityRule())
-    }
+        AudioUsageRule()
+    )
 
     fun runRules(context: AnalysisContext): List<Issue> {
         return rules
@@ -71,10 +70,9 @@ class RuleEngine {
     }
 
     private fun isComposeFile(file: PsiFile): Boolean {
-        println("FILE: ${file.name}")
-        println("TEXT SAMPLE: ${file.text.take(100)}")
-        println("CHECKFILE CALLED: ${file.name}")
-
-        return file.text.contains("@Composable")
+        val kotlinFile = file as? KtFile ?: return false
+        return FileTypeUtils.isKotlin(file) &&
+                PsiTreeUtil.findChildrenOfType(kotlinFile, KtAnnotationEntry::class.java)
+                    .any { it.shortName?.asString() == "Composable" }
     }
 }
