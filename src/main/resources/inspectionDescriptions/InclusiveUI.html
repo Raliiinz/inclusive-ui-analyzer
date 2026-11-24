@@ -1,9 +1,13 @@
 <html>
 <body>
-Reports common accessibility problems in Android XML layouts and Jetpack Compose code.
+Reports common accessibility problems in Android XML layouts, Jetpack Compose code, and Kotlin animation APIs.
 <p>
     The inspection checks image descriptions, interactive touch target sizes, text contrast,
-    accessibility attributes, Compose semantics, and audio APIs.
+    accessibility attributes, Compose semantics, audio APIs, and potentially problematic motion.
+</p>
+<p>
+    Animation findings cover excessive duration, abrupt transitions, and continuous or intense motion.
+    Each finding includes a recommendation for manual review because animation intent cannot be inferred safely in every case.
 </p>
 <p>
     Problems are reported directly on the relevant XML tag or Kotlin PSI element. Where a safe

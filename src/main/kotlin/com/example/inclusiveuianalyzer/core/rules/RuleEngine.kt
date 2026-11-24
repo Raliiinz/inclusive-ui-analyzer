@@ -2,6 +2,7 @@ package com.example.inclusiveuianalyzer.core.rules
 
 import com.example.inclusiveuianalyzer.core.context.AnalysisContext
 import com.example.inclusiveuianalyzer.core.model.Issue
+import com.example.inclusiveuianalyzer.core.rules.animation.AnimationRule
 import com.example.inclusiveuianalyzer.core.rules.audio.AudioUsageRule
 import com.example.inclusiveuianalyzer.core.rules.compose.ClearAndSetSemanticsRule
 import com.example.inclusiveuianalyzer.core.rules.compose.ComposeTouchTargetSizeRule
@@ -33,6 +34,8 @@ class RuleEngine {
         ClearAndSetSemanticsRule(),
         TextAlternativeRule(),
         ComposeTouchTargetSizeRule(),
+        // Motion
+        AnimationRule(),
         // Audio
         AudioUsageRule()
     )
